@@ -45,6 +45,9 @@ public class Main {
                 case 3:
                     showAllPlayers();
                     break;
+                case 4:
+                    UpdatePlayer();
+                    break;
                 case 0:
                     System.out.println("Nos vemos");
                     break;
@@ -55,6 +58,22 @@ public class Main {
             }
         }
         while (opcion!=0);
+
+    }
+
+    private static void UpdatePlayer() {
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del jugador que quiere actualizar");
+        String name = leer.nextLine();
+        System.out.println("Ingrese el nuevo dorsal");
+        int dorsal = leer.nextInt();
+        System.out.println("¿El jugador esta vivo? (s/n)");
+        String vivo = leer.next();
+
+        Jugador jugador = new Jugador();
+        jugador.name=name;
+        jugador.dorsal=dorsal;
+        jugador.is_alive = vivo.equalsIgnoreCase("s");
 
     }
 
@@ -84,6 +103,4 @@ public class Main {
         readPlayers();
 
     }
-
-
 }
