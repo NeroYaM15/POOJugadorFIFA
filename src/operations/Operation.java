@@ -141,6 +141,41 @@ public class Operation {
             System.out.println(e.getMessage());
         }
     }
+
+    public static void DeletePlayer(Jugador jugadorToDelete) {
+        StringBuilder contenido = new StringBuilder();
+        boolean encontrado = false;
+
+        try {
+            FileReader reader = new FileReader("´players.csv");
+            BufferedReader buffer = new BufferedReader(reader);
+            String playerReader;
+
+            while ((playerReader = buffer.readLine()) != null) {
+                if (playerReader.isBlank()) continue;
+                String[] data_readed = playerReader.split(",");
+                if (data_readed.length < 5) continue;
+
+                if (!encontrado && data_readed[1].equalsIgnoreCase(jugadorToDelete.name)) {
+                    encontrado = true;
+                    continue;
+                }
+                contenido.append(playerReader).append("\n");
+            }
+            buffer.close();
+
+            if (encontrado) {
+                FileWriter writer = new FileWriter("players.csv", false);
+                writer.write(contenido.toString());
+                writer.close();
+                System.out.println("Player Deleted");
+            } else {
+                System.out.println("No se encontro un jugador con ese nombre");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
 }
 
 

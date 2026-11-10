@@ -30,6 +30,7 @@ public class Main {
             System.out.println("2. Buscar Jugador");
             System.out.println("3. Mostrar jugadores");
             System.out.println("4. Actualizar jugador");
+            System.out.println("5. Eliminar Jugador");
             System.out.println("0. Salir destamonda");
             System.out.println("*********** CRUD FIFAS *********** ");
 
@@ -47,6 +48,9 @@ public class Main {
                     break;
                 case 4:
                     UpdatePlayer();
+                    break;
+                case 5:
+                    DeletePlayer();
                     break;
                 case 0:
                     System.out.println("Nos vemos");
@@ -75,6 +79,19 @@ public class Main {
         jugador.dorsal=dorsal;
         jugador.is_alive = vivo.equalsIgnoreCase("s");
 
+    }
+
+    private static void DeletePlayer() {
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del jugador que quiere eliminar");
+        String name = leer.nextLine();
+        System.out.println("¿Seguro que desea eliminar a " + name + "? (s/n)?");
+        if (leer.next().equalsIgnoreCase("s")) {
+            DeletePlayer();
+        }
+        else  {
+            System.out.println("CANCELADO");
+        }
     }
 
     public static void newPlayer() {
