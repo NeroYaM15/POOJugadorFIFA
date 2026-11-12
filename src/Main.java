@@ -1,5 +1,6 @@
 import jdk.swing.interop.SwingInterOpUtils;
 import models.Jugador;
+import models.Posicion;
 
 import java.time.LocalDate;
 import java.util.Scanner;
@@ -75,10 +76,28 @@ public class Main {
         System.out.println("¿El jugador esta vivo? (s/n)");
         String vivo = leer.next();
 
+        Posicion[] posiciones = Posicion.values();
+        int opcionPosicion;
+        do {
+            System.out.println("Seleccione la nueva posicion");
+            for(int i = 0; i < posiciones.length; i++){
+                System.out.println((i +1) + ". "  + posiciones[i]);
+            }
+            System.out.println("0. Dejar la misma posicion");
+            opcionPosicion = leer.nextInt();
+            if(opcionPosicion < 0 || opcionPosicion > posiciones.length){
+                System.out.println("Opcion no valida");
+            }
+        }
+        while (opcionPosicion < 0 || opcionPosicion > posiciones.length);
+
         Jugador jugador = new Jugador();
         jugador.name=name;
         jugador.dorsal=dorsal;
         jugador.is_alive = vivo.equalsIgnoreCase("s");
+        if(opcionPosicion > 0){
+            jugador.posicion = posiciones[opcionPosicion-1];
+        }
 
     }
 
@@ -118,7 +137,25 @@ public class Main {
         int day = leer.nextInt();
         System.out.println("Ingrese el dorsal");
         int dorsal = leer.nextInt();
-        savePlayer(new Jugador(name_player, LocalDate.of(year, month, day),dorsal));
+        Posicion[] posiciones = Posicion.values();
+        int opcionPosicion;
+
+        do {
+            System.out.println("Ingrese el posicion del Jugador");
+
+            for(int i = 0; i < posiciones.length; i++){
+                System.out.println((i + 1) + ". " + posiciones[i]);
+            }
+            opcionPosicion = leer.nextInt();
+
+            if(opcionPosicion< 1 || opcionPosicion > posiciones.length){
+                System.out.println("Opcion no valida");
+            }
+        }
+        while (opcionPosicion<1 || opcionPosicion>posiciones.length);
+        Posicion posicion = posiciones[opcionPosicion - 1];
+
+        savePlayer(new Jugador(name_player, LocalDate.of(year, month, day),dorsal,posicion));
     }
 
     public static void findPlayer() {

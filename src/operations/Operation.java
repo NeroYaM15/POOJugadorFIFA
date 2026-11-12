@@ -117,8 +117,18 @@ public class Operation {
                 if(data_readed.length<5)continue;
 
                 if(!encontrado && data_readed[1].equalsIgnoreCase(jugadorToUpdate.name)){
+                    if (data_readed.length < 6){
+                        data_readed = Arrays.copyOf(data_readed,6);
+                    }
                     data_readed[2] = String.valueOf(jugadorToUpdate.dorsal);
                     data_readed[4] = String.valueOf(jugadorToUpdate.is_alive);
+
+                    if(jugadorToUpdate.posicion != null){
+                        data_readed[5] = jugadorToUpdate.posicion.name();
+                    } else if (data_readed[5] == null) {
+                        data_readed[5] = "SIN_POSICION";
+
+                    }
                     playerReader = String.join(",", data_readed);
                     encontrado = true;
 

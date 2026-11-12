@@ -26,16 +26,20 @@ public class Jugador extends Persona {
     public String toString() {
         return "models.Jugador{" +
                 "dorsal=" + dorsal +
+                ", posicion=" + posicion +
+                ", nacimiento=" + nacimiento +
+                ", edad=" + getEdad() +
                 "} "
                 + super.toString();
     }
 
 
-    public Jugador(String nombre, LocalDate nacimiento, int dorsal)
+    public Jugador(String nombre, LocalDate nacimiento, int dorsal, Posicion posicion)
     {
         super.name=nombre;
         this.nacimiento=nacimiento;
         this.dorsal=dorsal;
+        this.posicion=posicion;
     }
 
     public Jugador()
@@ -43,6 +47,7 @@ public class Jugador extends Persona {
 
     public String playerToCSV()
     {
-        return this.getId()+","+this.name + ","+this.dorsal+","+this.getEdad()+","+is_alive;
+        String pos = (posicion == null) ? "SIN_POSICION" : posicion.name();
+        return this.getId()+","+this.name + ","+this.dorsal+","+this.getEdad()+","+is_alive+","+pos;
     }
 }
