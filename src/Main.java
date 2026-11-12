@@ -1,6 +1,7 @@
 import jdk.swing.interop.SwingInterOpUtils;
 import models.Jugador;
 import models.Posicion;
+import operations.Operation;
 
 import java.time.LocalDate;
 import java.util.Scanner;
@@ -78,6 +79,7 @@ public class Main {
 
         Posicion[] posiciones = Posicion.values();
         int opcionPosicion;
+
         do {
             System.out.println("Seleccione la nueva posicion");
             for(int i = 0; i < posiciones.length; i++){
@@ -98,7 +100,7 @@ public class Main {
         if(opcionPosicion > 0){
             jugador.posicion = posiciones[opcionPosicion-1];
         }
-
+        Operation.UpdatePlayer(jugador);
     }
 
     private static void DeletePlayer() {
