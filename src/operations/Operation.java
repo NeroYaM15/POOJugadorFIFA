@@ -147,8 +147,8 @@ public class Operation {
         boolean encontrado = false;
 
         try {
-            FileReader reader = new FileReader("´players.csv");
-            BufferedReader buffer = new BufferedReader(reader);
+            FileReader lector = new FileReader("players.csv");
+            BufferedReader buffer = new BufferedReader(lector);
             String playerReader;
 
             while ((playerReader = buffer.readLine()) != null) {
@@ -158,19 +158,21 @@ public class Operation {
 
                 if (!encontrado && data_readed[1].equalsIgnoreCase(jugadorToDelete.name)) {
                     encontrado = true;
-                    continue;
+                    continue;                      // se salta la línea: queda borrada
                 }
+
                 contenido.append(playerReader).append("\n");
             }
+
             buffer.close();
 
             if (encontrado) {
-                FileWriter writer = new FileWriter("players.csv", false);
-                writer.write(contenido.toString());
-                writer.close();
+                FileWriter escribir = new FileWriter("players.csv", false);
+                escribir.write(contenido.toString());
+                escribir.close();
                 System.out.println("Player Deleted");
             } else {
-                System.out.println("No se encontro un jugador con ese nombre");
+                System.out.println("No se encontró un jugador con ese nombre");
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

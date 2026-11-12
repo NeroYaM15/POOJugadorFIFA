@@ -7,6 +7,7 @@ import java.util.Scanner;
 import static operations.Operation.*;
 
 public class Main {
+    private static final Scanner leer = new Scanner(System.in);
     public static void main(String[] args) {
 
         //models.Jugador newPlayer = new models.Jugador("Pele", LocalDate.of(1940, 10,23));
@@ -82,15 +83,26 @@ public class Main {
     }
 
     private static void DeletePlayer() {
-        Scanner leer = new Scanner(System.in);
         System.out.println("Ingrese el nombre del jugador que quiere eliminar");
-        String name = leer.nextLine();
-        System.out.println("¿Seguro que desea eliminar a " + name + "? (s/n)?");
-        if (leer.next().equalsIgnoreCase("s")) {
-            DeletePlayer();
+
+        String name = leer.nextLine().trim();
+
+        if (name.isEmpty()) {
+            System.out.println("El nombre no puede estar vacio.");
+            return;
         }
-        else  {
-            System.out.println("CANCELADO");
+
+        System.out.println("¿Seguro que desea eliminar a "
+                + name + "? (s/n)");
+
+        String confirmacion = leer.nextLine().trim();
+
+        if (confirmacion.equalsIgnoreCase("s")) {
+            Jugador jugador = new Jugador();
+            jugador.name = name;
+            operations.Operation.DeletePlayer(jugador);
+        } else {
+            System.out.println("ELIMINACION CANCELADA");
         }
     }
 
