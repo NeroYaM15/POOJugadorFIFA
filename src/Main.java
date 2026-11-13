@@ -29,32 +29,25 @@ public class Main {
         int opcion;
         do {
             System.out.println("\n *********** CRUD FIFAS *********** ");
-            System.out.println("1. Crear Jugador");
-            System.out.println("2. Buscar Jugador");
-            System.out.println("3. Mostrar jugadores");
-            System.out.println("4. Actualizar jugador");
-            System.out.println("5. Eliminar Jugador");
+            System.out.println("1. Jugadores");
+            System.out.println("2. Tecnicos");
+            System.out.println("3. Equipos");
             System.out.println("0. Salir destamonda");
             System.out.println("*********** CRUD FIFAS *********** ");
 
             opcion = leer.nextInt();
+            leer.nextLine();
 
             switch (opcion) {
                 case 1:
-                    newPlayer();
+                    MenuJugadores();
                     break;
                 case 2:
-                    findPlayer();
+                    MenuTecnicos();
                     break;
-                case 3:
-                    showAllPlayers();
-                    break;
-                case 4:
-                    UpdatePlayer();
-                    break;
-                case 5:
-                    DeletePlayer();
-                    break;
+              //  case 3:
+                    //MenuEquipos();
+                   // break;
                 case 0:
                     System.out.println("Nos vemos");
                     break;
@@ -66,6 +59,82 @@ public class Main {
         }
         while (opcion!=0);
 
+    }
+
+    public static void MenuJugadores(){
+        int opcion;
+
+        do {
+            System.out.println("\n *********** CRUD FIFAS *********** ");
+            System.out.println("1. Crear Jugador");
+            System.out.println("2. Buscar Jugador");
+            System.out.println("3. Mostrar Jugador");
+            System.out.println("4. Actualizar Jugador");
+            System.out.println("5. Eliminar Jugador");
+            System.out.println("0. Nos vidrios");
+            System.out.println("*********** CRUD FIFAS *********** ");
+
+            opcion = leer.nextInt();
+            leer.nextLine();
+
+            switch (opcion) {
+                case 1:
+                    newPlayer();
+                    break;
+
+                case 2:
+                    findPlayer();
+                    break;
+
+                case 3:
+                    showAllPlayers();
+                    break;
+
+                case 4:
+                    UpdatePlayer();
+                    break;
+
+                case 5:
+                    DeletePlayer();
+                    break;
+
+                case 0:
+                    System.out.println("Nos vidrios");
+                    break;
+
+                default:
+                    System.out.println("Abrite burro");
+
+            }
+
+        }
+        while (opcion!=0);
+    }
+
+    public static void MenuTecnicos(){
+        int opcion;
+
+        do {
+            System.out.println("\n *********** CRUD FIFAS *********** ");
+            System.out.println("1. Crear técnico");
+            System.out.println("2. Buscar técnico");
+            System.out.println("3. Mostrar técnicos");
+            System.out.println("4. Actualizar técnico");
+            System.out.println("5. Eliminar técnico");
+            System.out.println("0. Volver al menú principal");
+            System.out.println("*********** CRUD FIFAS *********** ");
+
+            opcion = leer.nextInt();
+            leer.nextLine();
+
+            switch (opcion) {
+
+                case 1:
+
+            }
+        }
+
+        while (opcion!=0);
     }
 
     private static void UpdatePlayer() {
@@ -123,7 +192,7 @@ public class Main {
             jugador.name = name;
             operations.Operation.DeletePlayer(jugador);
         } else {
-            System.out.println("ELIMINACION CANCELADA");
+            System.out.println("CANCELADO");
         }
     }
 

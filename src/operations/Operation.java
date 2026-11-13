@@ -1,6 +1,8 @@
 package operations;
 
 import models.Jugador;
+import models.Posicion;
+import models.Equipo;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -49,15 +51,21 @@ public class Operation {
 }
     public static void readPlayers()
     {
-        try {
-            FileReader lector = new FileReader("players.csv");
-            BufferedReader buffer = new BufferedReader(lector);
+        try(BufferedReader buffer = new BufferedReader(new FileReader("players.csv"))) {
             String playerReader;
 
             while ((playerReader= buffer.readLine())!=null)
             {
-                String[] d = playerReader.split(",");
-                System.out.println("ID: " + d[0] + " | Nombre: " + d[1] + " | Dorsal: " + d[2] + " | Edad: " + d[3] + " | Vivo: " + d[4]);
+                if (playerReader.isBlank()){
+                    continue;
+                }
+                String[] d = playerReader.split(",", -1);
+
+                if (d.length < 5){
+                    continue;
+                }
+                String posicion = (d.length > 5 && !d[5].isBlank()) ? d[5] : "SIN_POSICION";
+                System.out.println("ID: " + d[0] + " | Nombre: " + d[1] + " | Dorsal: " + d[2] + " | Edad: " + d[3] + " | Vivo: " + d[4] + " | Posicion:" + (d.length > 5 ? d[5] : "SIN_POSICION"));
             }
 
 
@@ -188,6 +196,149 @@ public class Operation {
             System.out.println(e.getMessage());
         }
     }
+    private static  Jugador findPlayerByName(String name) {
+        try(BufferedReader buffer = new BufferedReader(new FileReader("players.csv"))) {
+            String playerReader;
+            while ((playerReader = buffer.readLine()) != null){
+                if (playerReader.isBlank()) continue;
+                String[] data_readed = playerReader.split(",");
+                if (data_readed.length < 5) continue;
+
+                if (data_readed[1].equalsIgnoreCase(name)) {
+                    Jugador temp_player = new Jugador();
+                    temp_player.setId(data_readed[0]);
+                    temp_player.name= data_readed[1];
+                    temp_player.dorsal = Integer.parseInt(data_readed[2]);
+                    temp_player.is_alive = Boolean.parseBoolean(data_readed[4]);
+                    if (data_readed.length > 5){
+                        try {
+                            temp_player.posicion = Posicion.valueOf(data_readed[5]);
+                        }
+                        catch (IllegalArgumentException e) {
+
+                        }
+                    }
+                    return temp_player;
+                }
+            }
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public static List<Equipo> loadTeams() {
+        List<Equipo> equipos = new ArrayList<>();
+        try (BufferedReader buffer = new BufferedReader(new FileReader("teams.csv"))) {
+            String teamReader;
+
+            while ((teamReader = buffer.readLine()) != null){
+                String[] d = teamReader.split(",", -1);
+                Equipo equipo = new Equipo(d[0]);
+
+                if (d.length > 1 && !d[1].isBlank()){
+                    for (String name : d[1].split(";")) {
+                        Jugador jugador = findPlayerByName(name);
+                        if (jugador != null) {
+                            equipo.agregarJugador(jugador);
+                        }
+                    }
+                }
+                equipos.add(equipo);
+            }
+        }
+        catch (IOException e) {
+
+        }
+        return equipos;
+    }
+
+    private static void saveTeams(List<Equipo> equipos) {
+        try (FileWriter writer = new FileWriter("teams.csv", false)) {
+            for (Equipo equipo : equipos) {
+                List<String> names = new ArrayList<>();
+                for (Jugador jugador : equipo.getPlantilla()){
+                    names.add(jugador.name);
+                }
+                writer.write(equipo.getTeamName() + "," + String.join(";", names) + "\n");
+            }
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static Equipo findTeam(List<Equipo> equipos, String teamName) {
+        for (Equipo equipo : equipos){
+            if (equipo.getTeamName().equalsIgnoreCase(teamName)){
+                return equipo;
+            }
+        }
+        return null;
+    }
+
+    public static void createTeam(String teamName) {
+        if (teamName.isEmpty() || teamName.contains(",") || teamName.contains(";")){
+            System.out.println("Error: Nombre no valido");
+            return;
+        }
+
+        List<Equipo> equipos = loadTeams();
+        if (findTeam(equipos,teamName) != null) {
+            System.out.println("Error: Jugador existente");
+            return;
+        }
+
+        equipos.add(new Equipo(teamName));
+        saveTeams(equipos);
+        System.out.println("Team Created");
+    }
+
+    public static void showTeams() {
+        List<Equipo> equipos = loadTeams();
+        if (equipos.isEmpty()){
+            System.out.println("No hay equipos registrados");
+            return;
+        }
+
+        for (Equipo equipo : equipos){
+            System.out.println("Equipo: " + equipo.getTeamName() + " | Jugadores: " + equipo.getCantidadJugadores());
+        }
+    }
+
+    public static void showTeamsRoster(String teamName) {
+        Equipo equipo = findTeam(loadTeams(), teamName);
+        if (equipo == null){
+            System.out.println("No se encontro el equipo");
+            return;
+        }
+
+        System.out.println("Plantilla de " + equipo.getTeamName() + ":");
+        if (equipo.getCantidadJugadores() == 0){
+            System.out.println("(Sin jugadores)");
+            return;
+        }
+        for (Jugador jugador : equipo.getPlantilla()){
+            String posicion = (jugador.posicion == null) ? "SIN_POSICION" : jugador.posicion.name();
+            System.out.println("Dorsal " + jugador.dorsal + " | " + jugador.name + " | " + posicion);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

@@ -4,9 +4,10 @@ public enum Posicion
 {
     PORTERO,
     DEFENSA,
-    DELANTERO,
-    MEDIOCAMPISTA,
     LATERAL,
+    VOLANTE,
+    MEDIOCAMPISTA,
+    DELANTERO,
     EXTREMO,
-    VOLANTE
+
 }
