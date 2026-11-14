@@ -325,6 +325,52 @@ public class Operation {
         }
     }
 
+    public static void addPlayerToTeam(String teamName, String playerName) {
+        List<Equipo> equipos = loadTeams();
+        Equipo equipo = findTeam(equipos,teamName);
+        if (equipo == null){
+            System.out.println("No se encontro el equipo");
+            return;
+        }
+
+        Jugador jugador = findPlayerByName(playerName);
+        if (jugador == null){
+            System.out.println("No existe un jugador con ese nombre");
+            return;
+        }
+
+        if (equipo.buscarJugador(jugador.name) != null){
+            System.out.println("Ese jugador ya esta en la plantilla");
+            return;
+        }
+
+        if (!equipo.agregarJugador(jugador)){
+            System.out.println("El dorsal " + jugador.dorsal + " ya lo usa otro jugador del equipo");
+            return;
+        }
+
+        saveTeams(equipos);
+        System.out.println("Player added to team");
+
+    }
+
+    public static void removePlayerFromTeam(String teamName, String playerName) {
+        List<Equipo> equipos = loadTeams();
+        Equipo equipo = findTeam(equipos,teamName);
+        if (equipo == null){
+            System.out.println("No se encontro el equipo");
+            return;
+        }
+
+        if (equipo.eliminarJugador(playerName)){
+            saveTeams(equipos);
+            System.out.println("Player removed from team");
+        }
+        else {
+            System.out.println("El jugador no esta en la plantilla");
+        }
+    }
+
 
 
 

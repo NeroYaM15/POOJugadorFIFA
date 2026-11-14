@@ -45,9 +45,9 @@ public class Main {
                 case 2:
                     MenuTecnicos();
                     break;
-              //  case 3:
-                    //MenuEquipos();
-                   // break;
+                case 3:
+                    MenuEquipos();
+                    break;
                 case 0:
                     System.out.println("Nos vemos");
                     break;
@@ -135,6 +135,51 @@ public class Main {
         }
 
         while (opcion!=0);
+    }
+
+    public static void MenuEquipos(){
+        int opcion;
+        do {
+            System.out.println("\n *********** CRUD FIFAS *********** ");
+            System.out.println("1. Crear equipo");
+            System.out.println("2. Mostrar equipo");
+            System.out.println("3. Ver plantilla de un equipo");
+            System.out.println("4. Agregar jugador a la plantilla");
+            System.out.println("5. Eliminar jugador de la plantilla");
+            System.out.println("0. Nos vidrios");
+            System.out.println("*********** CRUD FIFAS *********** ");
+
+            opcion = leer.nextInt();
+
+            switch (opcion) {
+                case 1:
+                    createTeam();
+                    break;
+
+                case 2:
+                    showTeams();
+                    break;
+
+                case 3:
+                    showTeamsRoster();
+                    break;
+
+                case 4:
+                    addPlayerToTeam();
+                    break;
+
+                case 5:
+                    removePlayerFromTeam();
+                    break;
+
+                case 0:
+                    break;
+                default:
+                    System.out.println("Abrite burro");
+
+            }
+        }
+        while (opcion != 0);
     }
 
     private static void UpdatePlayer() {
@@ -239,5 +284,35 @@ public class Main {
     public static void showAllPlayers() {
         readPlayers();
 
+    }
+
+    public static void createTeam() {
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del equipo");
+        Operation.createTeam(leer.nextLine());
+    }
+
+    public static void showTeamsRoster() {
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del equipo");
+        Operation.showTeamsRoster(leer.nextLine());
+    }
+
+    public static void addPlayerToTeam() {
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del equipo");
+        String team_name = leer.nextLine();
+        System.out.println("Ingrese el nombre del jugador que desea agregar");
+        String player_name = leer.nextLine();
+        Operation.addPlayerToTeam(team_name, player_name);
+    }
+
+    public static void removePlayerFromTeam() {
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del equipo");
+        String team_name = leer.nextLine();
+        System.out.println("Ingrese el nombre del jugador que desea eliminar");
+        String player_name = leer.nextLine();
+        Operation.removePlayerFromTeam(team_name, player_name);
     }
 }
