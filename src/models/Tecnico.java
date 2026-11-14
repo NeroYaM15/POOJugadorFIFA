@@ -12,9 +12,11 @@ public class Tecnico extends Persona{
     public Tecnico(String nombre, LocalDate nacimiento, String club){
         super.name = nombre;
         setNacimiento(nacimiento);
+        this.club = club;
     }
 
     public LocalDate getNacimiento() {
+
         return nacimiento;
     }
     public void setNacimiento(LocalDate nacimiento) {
@@ -33,6 +35,11 @@ public class Tecnico extends Persona{
                 nacimiento,
                 LocalDate.now()
         ).getYears();
+    }
+
+    public String tecnicoToCSV(){
+        String clubName = (club == null || club.isBlank()) ? "SIN_CLUB" : club;
+        return this.getId() + "," +this.name + "," +this.getNacimiento().toString() + "," +clubName;
     }
 
     @Override

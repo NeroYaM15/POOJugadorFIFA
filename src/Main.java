@@ -1,6 +1,7 @@
 import jdk.swing.interop.SwingInterOpUtils;
 import models.Jugador;
 import models.Posicion;
+import models.Tecnico;
 import operations.Operation;
 
 import java.time.LocalDate;
@@ -130,6 +131,27 @@ public class Main {
             switch (opcion) {
 
                 case 1:
+                    newTecnico();
+                    break;
+
+                case 2:
+                    findTecnico();
+
+                case 3:
+                    showAllTecnico();
+
+                case 4:
+                    UpdateTecnico();
+                    break;
+
+                case 5:
+                    DeleteTecnico();
+                    break;
+
+                case 0:
+                    break;
+                default:
+                    System.out.println("Abrite burro");
 
             }
         }
@@ -315,4 +337,59 @@ public class Main {
         String player_name = leer.nextLine();
         Operation.removePlayerFromTeam(team_name, player_name);
     }
+
+    public static void newTecnico(){
+        System.out.println("Ingrese el nombre del tecnico");
+        String name = leer.nextLine();
+        System.out.println("Ingrese año de nacimiento");
+        int year = leer.nextInt();
+        System.out.println("Ingrese mes de naciemiento");
+        int month = leer.nextInt();
+        System.out.println("Ingrese dia de nacimiento");
+        int day = leer.nextInt();
+        leer.nextLine();
+
+    }
+
+    public static void findTecnico() {
+        System.out.println("Ingrese el nombre del tecnico a buscar");
+        readOneTecnico(leer.nextLine().trim());
+    }
+
+    public static void showAllTecnico() {
+        readTecnico();
+    }
+
+    private static void UpdateTecnico() {
+        System.out.println("Ingrese el nombre del tecnico");
+        String name = leer.nextLine();
+        System.out.println("¿El tecnico esta vivo? (s/n)");
+        String vivo = leer.nextLine();
+
+        Tecnico tecnico = new Tecnico();
+        tecnico.name = name.trim();
+        tecnico.is_alive = vivo.equalsIgnoreCase("s");
+
+        Operation.UpdateTecnico(tecnico);
+    }
+
+    private static void DeleteTecnico() {
+        System.out.println("Ingrese el nombre del tecnico a eliminar");
+        String name = leer.nextLine();
+         if (name.isEmpty()){
+             System.out.println("El nombre del tecnico no puede ser vacio");
+             return;
+         }
+
+        System.out.println("¿Seguro que desea eliminar a " + name + "? (s/n)");
+         if (leer.nextLine().equalsIgnoreCase("s")) {
+             Tecnico tecnico = new Tecnico();
+             tecnico.name =name;
+             Operation.deleteTecnico(tecnico);
+         }
+         else {
+             System.out.println("CANCELADO");
+         }
+    }
+
 }

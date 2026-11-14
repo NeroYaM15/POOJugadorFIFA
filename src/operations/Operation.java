@@ -3,14 +3,16 @@ package operations;
 import models.Jugador;
 import models.Posicion;
 import models.Equipo;
+import models.Tecnico;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.io.FileNotFoundException;
+import java.time.DateTimeException;
+import java.time.LocalDate;
 
 public class Operation {
     public static String generarId() {
@@ -371,20 +373,210 @@ public class Operation {
         }
     }
 
+    private static String generarIdTecnico(){
+        Set<String> usados = new HashSet<>();
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
+            String line;
+            while ((line = buffer.readLine()) != null){
+                usados.add(line.split(",")[0]);
+            }
+        }
+        catch (IOException e){
 
+        }
+        Random random = new Random();
+        String nuevo;
+        do {
+            nuevo = String.valueOf(100000 + random.nextInt(900000));
+        }
+        while (usados.contains(nuevo));
+        return nuevo;
+    }
 
+    private static boolean existsTecnico(String name){
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
+            String tecnicoReader;
+            while ((tecnicoReader = buffer.readLine()) != null){
+                if (tecnicoReader.isBlank()) continue;
+                String[] data_readed = tecnicoReader.split(",");
+                if (data_readed.length >= 5 && data_readed[1].equalsIgnoreCase(name)){
+                    return true;
+                }
+            }
+        }
+        catch (IOException e){
 
+        }
+        return false;
+    }
 
+    public static void saveTecnico(Tecnico tecnicoToSave){
+        if (tecnicoToSave.name == null || tecnicoToSave.name.isBlank() || tecnicoToSave.name.contains(",")) {
+            System.out.println("Error: Nombre no valido");
+            return;
+        }
 
+        if (existsTecnico(tecnicoToSave.name)){
+            System.out.println("Error: Jugador existente");
+            return;
+        }
 
+        tecnicoToSave.setId(generarIdTecnico());
+        try {
+            FileWriter writer = new FileWriter("coaches.csv", true);
+            writer.write(tecnicoToSave.tecnicoToCSV());
+            writer.write("\n");
+            writer.close();
+            System.out.println("Tecnico saved");
+        }
+        catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
 
+    private static void printTecnico(String[] d) {
+        int edad = 0;
+        try {
+            edad = new Tecnico(d[1], LocalDate.parse(d[2]), d[3]).get();
+        }
+        catch (DateTimeException e) {
 
+        }
+        System.out.println("ID: " + d[0] + " | Nombre: " + d[1] + " | Nacimiento: " + d[2]
+                + " | Edad: " + edad + " | Club: " + d[3] + " | Vivo: " + d[4]);
+    }
 
+    public static void readTecnico(){
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
+            String tecnicoReader;
+            boolean there_are_Tecnicos = false;
 
+            while ((tecnicoReader = buffer.readLine()) != null){
+                if (tecnicoReader.isBlank()) continue;
+                String[] d = tecnicoReader.split(",", -1);
 
+                if (d.length < 5) continue;
+                printTecnico(d);
+                there_are_Tecnicos = true;
 
+            }
+            if  (there_are_Tecnicos){
+                System.out.println("All tecnicos have bee read");
+            }
+            else  {
+                System.out.println("Tecnicos have not been read");
+            }
+        }
+        catch (FileNotFoundException e){
+            System.out.println("Error: No se encontro el tecnico");
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
 
+    public static void readOneTecnico(String name){
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
+            String tecnicoReader;
+            boolean encontrado = false;
 
+            while ((tecnicoReader = buffer.readLine()) != null){
+                if (tecnicoReader.isBlank()) continue;
+                String[] d = tecnicoReader.split(",", -1);
+                if (d.length < 5) continue;
+
+                if (d[0].equalsIgnoreCase(name)){
+                    printTecnico(d);
+                    encontrado = true;
+                }
+            }
+            if (!encontrado){
+                System.out.println("Tecnico no encontrado");
+            }
+        }
+        catch (FileNotFoundException e){
+            System.out.println("Error: No se encontro el tecnico");
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void UpdateTecnico(Tecnico tecnicoToUpdate){
+        StringBuilder contenido = new StringBuilder();
+        boolean encontrado = false;
+
+        try {
+            FileReader lector = new FileReader("coaches.csv");
+            BufferedReader buffer = new BufferedReader(lector);
+            String tecnicoReader;
+
+            while ((tecnicoReader = buffer.readLine()) != null){
+                if (tecnicoReader.isBlank()) continue;
+                String[] data_readed = tecnicoReader.split(",");
+                if (data_readed.length < 5) continue;
+
+                if (!encontrado && data_readed[1].equalsIgnoreCase(tecnicoToUpdate.name)){
+                    if (tecnicoToUpdate.club != null){
+                        data_readed[3] = tecnicoToUpdate.club;
+                    }
+                    data_readed[4] = String.valueOf(tecnicoToUpdate.is_alive);
+                    tecnicoReader = String.join(",", data_readed);
+                    encontrado = true;
+                }
+                contenido.append(tecnicoReader).append("\n");
+            }
+            buffer.close();
+
+            if (encontrado){
+                FileWriter writer = new FileWriter("coaches.csv", false);
+                writer.write(contenido.toString());
+                writer.close();
+                System.out.println("Tecnico Updated");
+            }
+            else  {
+                System.out.println("Tecnico Not Updated");
+            }
+        }
+        catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
+    public static void deleteTecnico(Tecnico tecnicoToDelete){
+        StringBuilder contenido = new StringBuilder();
+        boolean encontrado = false;
+
+        try {
+            FileReader lector = new FileReader("coaches.csv");
+            BufferedReader buffer = new BufferedReader(lector);
+            String tecnicoReader;
+
+            while ((tecnicoReader = buffer.readLine()) != null){
+                if (tecnicoReader.isBlank()) continue;
+                String[] data_readed = tecnicoReader.split(",");
+                if (data_readed.length < 5) continue;
+
+                if (!encontrado && data_readed[1].equalsIgnoreCase(tecnicoToDelete.name)){
+                    encontrado = true;
+                    continue;
+                }
+                contenido.append(tecnicoReader).append("\n");
+            }
+            buffer.close();
+            if (encontrado){
+                FileWriter writer = new FileWriter("coaches.csv", false);
+                writer.write(contenido.toString());
+                writer.close();
+                System.out.println("Tecnico Deleted");
+            }
+            else {
+                System.out.println("Tecnico Not Deleted");
+            }
+        }
+        catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
 }
 
 
