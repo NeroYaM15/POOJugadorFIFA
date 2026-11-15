@@ -55,6 +55,8 @@ public class Operation {
     {
         try(BufferedReader buffer = new BufferedReader(new FileReader("players.csv"))) {
             String playerReader;
+            boolean encontrado = false;
+            List<Equipo> equipos = loadTeams();
 
             while ((playerReader= buffer.readLine())!=null)
             {
@@ -66,50 +68,50 @@ public class Operation {
                 if (d.length < 5){
                     continue;
                 }
-                String posicion = (d.length > 5 && !d[5].isBlank()) ? d[5] : "SIN_POSICION";
-                System.out.println("ID: " + d[0] + " | Nombre: " + d[1] + " | Dorsal: " + d[2] + " | Edad: " + d[3] + " | Vivo: " + d[4] + " | Posicion:" + (d.length > 5 ? d[5] : "SIN_POSICION"));
+                String equipo = findPlayerTeam(equipos, d[1]);
+                mostrarJugador(d, equipo);
+                encontrado = true;
             }
 
-
-            buffer.close();
-            System.out.println("All players have been read");
+            if (!encontrado){
+                System.out.println("All players have been read");
+            }
+            else {
+                System.out.println("All players have not been read");
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
     public static void readOnePlayer(String name)
     {
-        try {
-            FileReader lector = new FileReader("players.csv");
-            BufferedReader buffer = new BufferedReader(lector);
+        try (BufferedReader buffer = new BufferedReader(new FileReader("players.csv"))){
             String playerReader;
+            boolean encontrado = false;
+            List<Equipo> equipos = loadTeams();
 
-            while ((playerReader = buffer.readLine())!=null)
-            {
+            while ((playerReader = buffer.readLine())!=null) {
+                if (playerReader.isBlank()){
+                    continue;
+                }
+               String [] d = playerReader.split(",", -1);
 
-               String [] data_readed = playerReader.split(",");
-               Jugador temp_player = new Jugador();
-               temp_player.setId(data_readed[0]);
-               temp_player.name= data_readed[1];
-               temp_player.dorsal = Integer.parseInt(data_readed[2]);
-               temp_player.is_alive = Boolean.parseBoolean(data_readed[4]);
+                if (d.length < 5){
+                    continue;
+                }
 
-               if (temp_player.name.equals(name))
-               {
-
-                   System.out.println(playerReader);
-                   //playerReader = null;
-               }
-
+                if (d[1].trim().equalsIgnoreCase(name.trim())){
+                    mostrarJugador(d, findPlayerTeam(equipos, d[1]));
+                    encontrado = true;
+                    break;
+                }
             }
-
-
-            buffer.close();
-            System.out.println("All players have been read");
+            if (!encontrado){
+                System.out.println("Jugador no encontrado");
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
     }
 
     public static void UpdatePlayer(Jugador jugadorToUpdate){
@@ -381,8 +383,63 @@ public class Operation {
             return;
         }
 
-        Tecnico tecnico = readOneTecnico(tecnicoName);
-        if (equipo.buscarJugador(tecnicoName) == null){}
+        if (equipo.getTecnico() != null){
+            System.out.println("El equipo ya tiene un tecnico asignado");
+            return;
+        }
+
+        Tecnico tecnico = null;
+
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
+            String tecnicoReader;
+            while ((tecnicoReader = buffer.readLine()) != null) {
+                if (tecnicoReader.isBlank()){
+                    continue;
+                }
+
+                String[] d = tecnicoReader.split(",", -1);
+                if (d.length < 4){
+                    continue;
+                }
+                if (d[1].equalsIgnoreCase(tecnicoName.trim())){
+                    tecnico = new Tecnico(d[1], LocalDate.parse(d[2]),d[3]);
+                    tecnico.setId(d[0]);
+                    break;
+                }
+            }
+        }
+        catch (IOException |DateTimeException e){
+            System.out.println("Error al cargar tecnico" + e.getMessage());
+            return;
+        }
+        if (tecnico == null){
+            System.out.println("No existe un tecnico con ese nombre");
+            return;
+        }
+        equipo.setTecnico(tecnico);
+        saveTeams(equipos);
+        System.out.println("Team Assigned to tecnico");
+    }
+
+    public static void removeTecnicoFromTeam(String teamName, String tecnicoName) {
+        List<Equipo> equipos = loadTeams();
+        Equipo equipo = findTeam(equipos,teamName);
+        if (equipo == null){
+            System.out.println("No existe un tecnico con ese nombre");
+            return;
+        }
+        if (equipo.getTecnico() == null){
+            System.out.println("El equipo no tiene un técnico asignado");
+            return;
+        }
+
+        if (equipo.getTecnico().name.equalsIgnoreCase(tecnicoName.trim())){
+            System.out.println("El técnico no está asignado a este equipo");
+            return;
+        }
+        equipo.setTecnico(null);
+        saveTeams(equipos);
+        System.out.println("Técnico retirado correctamente del equipo");
     }
 
     private static String generarIdTecnico(){
@@ -390,7 +447,7 @@ public class Operation {
         try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
             String line;
             while ((line = buffer.readLine()) != null){
-                usados.add(line.split(",")[0]);
+                usados.add(line.split(",", -1)[0]);
             }
         }
         catch (IOException e){
@@ -409,9 +466,11 @@ public class Operation {
         try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
             String tecnicoReader;
             while ((tecnicoReader = buffer.readLine()) != null){
-                if (tecnicoReader.isBlank()) continue;
-                String[] data_readed = tecnicoReader.split(",");
-                if (data_readed.length >= 5 && data_readed[1].equalsIgnoreCase(name)){
+                if (tecnicoReader.isBlank()){
+                    continue;
+                }
+                String[] d = tecnicoReader.split(",", -1);
+                if (d.length >= 4 && d[1].equalsIgnoreCase(name)){
                     return true;
                 }
             }
@@ -428,17 +487,20 @@ public class Operation {
             return;
         }
 
-        if (existsTecnico(tecnicoToSave.name)){
-            System.out.println("Error: Jugador existente");
+        if (tecnicoToSave.getNacimiento() == null){
+            System.out.println("Error: Fecha de nacimiento no valido");
             return;
         }
 
+        if (existsTecnico(tecnicoToSave.name)){
+            System.out.println("Error: El tecnico ya existe");
+            return;
+        }
         tecnicoToSave.setId(generarIdTecnico());
-        try {
-            FileWriter writer = new FileWriter("coaches.csv", true);
+
+        try (FileWriter writer = new FileWriter("coaches.csv", true)){
             writer.write(tecnicoToSave.tecnicoToCSV());
             writer.write("\n");
-            writer.close();
             System.out.println("Tecnico saved");
         }
         catch (IOException e){
@@ -446,44 +508,48 @@ public class Operation {
         }
     }
 
-    private static void printTecnico(String[] d) {
-        int edad = 0;
+    private  static void printTecnico(String[] d){
         try {
-            edad = new Tecnico(d[1], LocalDate.parse(d[2]), d[3]).get();
-        }
-        catch (DateTimeException e) {
+            Tecnico tecnico = new Tecnico(d[1],LocalDate.parse(d[2]),d[3]);
+            tecnico.setId(d[0]);
 
+            if (d.length > 4){
+                tecnico.is_alive = Boolean.parseBoolean(d[4]);
+            }
+            System.out.println("ID: " + tecnico.getId() + " | Nombre: " + tecnico.name + " | Edad: " + tecnico.getEdad() + " | Club: " + tecnico.club + " | Vivo: " + tecnico.is_alive);
         }
-        System.out.println("ID: " + d[0] + " | Nombre: " + d[1] + " | Nacimiento: " + d[2]
-                + " | Edad: " + edad + " | Club: " + d[3] + " | Vivo: " + d[4]);
+        catch (DateTimeException e){
+            System.out.println("Error: Fecha de nacimiento no valido");
+        }
     }
 
     public static void readTecnico(){
         try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
             String tecnicoReader;
-            boolean there_are_Tecnicos = false;
+            boolean encontado = false;
 
             while ((tecnicoReader = buffer.readLine()) != null){
-                if (tecnicoReader.isBlank()) continue;
+                if (tecnicoReader.isBlank()){
+                    continue;
+                }
                 String[] d = tecnicoReader.split(",", -1);
 
-                if (d.length < 5) continue;
+                if (d.length < 5){
+                    continue;
+                }
                 printTecnico(d);
-                there_are_Tecnicos = true;
+                encontado = true;
 
             }
-            if  (there_are_Tecnicos){
-                System.out.println("All tecnicos have bee read");
+            if  (encontado){
+                System.out.println("All tecnicos have been read");
             }
             else  {
                 System.out.println("Tecnicos have not been read");
             }
         }
-        catch (FileNotFoundException e){
-            System.out.println("Error: No se encontro el tecnico");
-        }
         catch (Exception e){
-            System.out.println(e.getMessage());
+            System.out.println("Error al leer técnicos: " + e.getMessage());
         }
     }
 
@@ -493,21 +559,23 @@ public class Operation {
             boolean encontrado = false;
 
             while ((tecnicoReader = buffer.readLine()) != null){
-                if (tecnicoReader.isBlank()) continue;
+                if (tecnicoReader.isBlank()){
+                    continue;
+                }
                 String[] d = tecnicoReader.split(",", -1);
-                if (d.length < 5) continue;
+                if (d.length < 5){
+                    continue;
+                }
 
-                if (d[0].equalsIgnoreCase(name)){
+                if (d[1].equalsIgnoreCase(name)){
                     printTecnico(d);
                     encontrado = true;
+                    break;
                 }
             }
             if (!encontrado){
                 System.out.println("Tecnico no encontrado");
             }
-        }
-        catch (FileNotFoundException e){
-            System.out.println("Error: No se encontro el tecnico");
         }
         catch (Exception e){
             System.out.println(e.getMessage());
@@ -518,33 +586,39 @@ public class Operation {
         StringBuilder contenido = new StringBuilder();
         boolean encontrado = false;
 
-        try {
-            FileReader lector = new FileReader("coaches.csv");
-            BufferedReader buffer = new BufferedReader(lector);
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
             String tecnicoReader;
 
             while ((tecnicoReader = buffer.readLine()) != null){
-                if (tecnicoReader.isBlank()) continue;
-                String[] data_readed = tecnicoReader.split(",");
-                if (data_readed.length < 5) continue;
+                if (tecnicoReader.isBlank()){
+                    continue;
+                }
+                String[] d = tecnicoReader.split(",", -1);
+                if (d.length < 4){
+                    continue;
+                }
 
-                if (!encontrado && data_readed[1].equalsIgnoreCase(tecnicoToUpdate.name)){
-                    if (tecnicoToUpdate.club != null){
-                        data_readed[3] = tecnicoToUpdate.club;
+                if (!encontrado && d[1].trim().equalsIgnoreCase(tecnicoToUpdate.name.trim())){
+                    if (d.length < 5){
+                        d = Arrays.copyOf(d, 5);
+                        d[4] = "true";
                     }
-                    data_readed[4] = String.valueOf(tecnicoToUpdate.is_alive);
-                    tecnicoReader = String.join(",", data_readed);
+
+                    if (tecnicoToUpdate.club != null && !tecnicoToUpdate.club.isBlank()){
+                        d[3] = tecnicoToUpdate.club;
+                    }
+                    d[4] = String.valueOf(tecnicoToUpdate.is_alive);
+                    tecnicoReader = String.join(",", d);
                     encontrado = true;
                 }
                 contenido.append(tecnicoReader).append("\n");
             }
-            buffer.close();
 
             if (encontrado){
-                FileWriter writer = new FileWriter("coaches.csv", false);
-                writer.write(contenido.toString());
-                writer.close();
-                System.out.println("Tecnico Updated");
+                try (FileWriter writer = new FileWriter("coaches.csv", false)){
+                    writer.write(contenido.toString());
+                }
+                System.out.println("Tecnico updated");
             }
             else  {
                 System.out.println("Tecnico Not Updated");
@@ -554,32 +628,35 @@ public class Operation {
             System.out.println(e.getMessage());
         }
     }
+
     public static void deleteTecnico(Tecnico tecnicoToDelete){
         StringBuilder contenido = new StringBuilder();
         boolean encontrado = false;
 
-        try {
-            FileReader lector = new FileReader("coaches.csv");
-            BufferedReader buffer = new BufferedReader(lector);
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
             String tecnicoReader;
 
             while ((tecnicoReader = buffer.readLine()) != null){
-                if (tecnicoReader.isBlank()) continue;
-                String[] data_readed = tecnicoReader.split(",");
-                if (data_readed.length < 5) continue;
+                if (tecnicoReader.isBlank()){
+                    continue;
+                }
+                String[] d = tecnicoReader.split(",", -1);
+                if (d.length < 4){
+                    continue;
+                }
 
-                if (!encontrado && data_readed[1].equalsIgnoreCase(tecnicoToDelete.name)){
+                if (!encontrado && d[1].trim().equalsIgnoreCase(tecnicoToDelete.name.trim())){
                     encontrado = true;
                     continue;
                 }
                 contenido.append(tecnicoReader).append("\n");
             }
-            buffer.close();
-            if (encontrado){
-                FileWriter writer = new FileWriter("coaches.csv", false);
-                writer.write(contenido.toString());
-                writer.close();
-                System.out.println("Tecnico Deleted");
+
+            if (encontrado) {
+                try (FileWriter writer = new FileWriter("coaches.csv", false)) {
+                    writer.write(contenido.toString());
+                }
+                System.out.println("Tecnico deleted");
             }
             else {
                 System.out.println("Tecnico Not Deleted");
@@ -588,6 +665,21 @@ public class Operation {
         catch (IOException e){
             System.out.println(e.getMessage());
         }
+    }
+
+    private static void mostrarJugador(String[] d, String equipo){
+        String posicion = d.length > 5 && !d[5].isBlank() ? d[5] : "SIN_POSICION";
+
+        System.out.println("ID: " + d[0] + " | Nombre: " + d[1] + " | Dorsal: " + d[2] + " | Edad: " + d[3] + " | Vivo: " + d[4] + " | Posición: " + posicion + " | Equipo: " + equipo);
+    }
+
+    private static String findPlayerTeam( List<Equipo> equipos, String playerName){
+        for (Equipo equipo : equipos){
+            if (equipo.buscarJugador(playerName) != null){
+                return equipo.getTeamName();
+            }
+        }
+        return "SIN_EQUIPO";
     }
 }
 

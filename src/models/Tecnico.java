@@ -16,7 +16,6 @@ public class Tecnico extends Persona{
     }
 
     public LocalDate getNacimiento() {
-
         return nacimiento;
     }
     public void setNacimiento(LocalDate nacimiento) {
@@ -26,26 +25,24 @@ public class Tecnico extends Persona{
         this.nacimiento = nacimiento;
     }
 
-    public int get(){
+    public int getEdad(){
         if (nacimiento == null) {
             return 0;
         }
 
-        return Period.between(
-                nacimiento,
-                LocalDate.now()
-        ).getYears();
+        return Period.between(nacimiento, LocalDate.now()).getYears();
     }
 
     public String tecnicoToCSV(){
         String clubName = (club == null || club.isBlank()) ? "SIN_CLUB" : club;
-        return this.getId() + "," +this.name + "," +this.getNacimiento().toString() + "," +clubName;
+        return this.getId() + "," +this.name + "," +this.getNacimiento() + "," +clubName + "," +this.is_alive;
     }
 
     @Override
     public String toString() {
         return "models.Tecnico{" +
                 "club='" + club + '\'' +
+                ", edad=" + getEdad() +
                 "} " + super.toString();
     }
 }

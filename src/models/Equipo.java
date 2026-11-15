@@ -5,11 +5,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class Equipo {
+    private String id;
     private Tecnico tecnico_equipo;
-    private List<Jugador> plantilla = new ArrayList<>();
     private String teamName;
+    private List<Jugador> plantilla = new ArrayList<>();
 
     public Equipo(String teamName) {
+        this.teamName = teamName;
+    }
+
+    public Equipo(String id, String teamName) {
+        this.id = id;
         this.teamName = teamName;
     }
 
@@ -32,6 +38,14 @@ public class Equipo {
         if (tecnico_equipo != null) {
             tecnico_equipo.club = this.teamName;
         }
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Tecnico getTecnico() {
@@ -94,9 +108,12 @@ public class Equipo {
 
     @Override
     public String toString() {
-        return "models.Equipo{" +
-                "teamName=" + teamName + '\'' +
-                ",tecnico_equipo=" + (tecnico_equipo == null ? "sin asignar" : tecnico_equipo.name) + ",jugadores=" + plantilla.size() +'}';
+        String nombreTecnico = tecnico_equipo == null ? "SIN_TECNICO" : tecnico_equipo.name;
+
+        return "ID: " + id
+                + " | Equipo: " + teamName
+                + " | Técnico: " + nombreTecnico
+                + " | Jugadores: " + plantilla.size();
     }
 
 }

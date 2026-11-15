@@ -137,9 +137,11 @@ public class Main {
 
                 case 2:
                     findTecnico();
+                    break;
 
                 case 3:
                     showAllTecnico();
+                    break;
 
                 case 4:
                     UpdateTecnico();
@@ -150,7 +152,9 @@ public class Main {
                     break;
 
                 case 0:
+                    System.out.println("Nos vidrios");
                     break;
+
                 default:
                     System.out.println("Abrite burro");
 
@@ -169,7 +173,7 @@ public class Main {
             System.out.println("3. Ver plantilla de un equipo");
             System.out.println("4. Agregar jugador a la plantilla");
             System.out.println("5. Eliminar jugador de la plantilla");
-            System.out.println("6. Asignat Tecnico");
+            System.out.println("6. Asignar Tecnico");
             System.out.println("7. Destituir Tecnico");
             System.out.println("0. Nos vidrios");
             System.out.println("*********** CRUD FIFAS *********** ");
@@ -206,7 +210,9 @@ public class Main {
                     break;
 
                 case 0:
+                    System.out.println("Nos vidrios");
                     break;
+
                 default:
                     System.out.println("Abrite burro");
 
@@ -397,7 +403,8 @@ public class Main {
 
     public static void findTecnico() {
         System.out.println("Ingrese el nombre del tecnico a buscar");
-        readOneTecnico(leer.nextLine().trim());
+        String name = leer.nextLine().trim();
+        readOneTecnico(name);
     }
 
     public static void showAllTecnico() {
