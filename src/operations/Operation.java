@@ -1,5 +1,9 @@
 package operations;
 
+import java.util.Random;
+import java.util.Set;
+import java.util.HashSet;
+
 import models.Jugador;
 import models.Posicion;
 import models.Equipo;
@@ -51,36 +55,60 @@ public class Operation {
         System.out.println(e.getMessage());
     }
 }
-    public static void readPlayers()
-    {
-        try(BufferedReader buffer = new BufferedReader(new FileReader("players.csv"))) {
-            String playerReader;
-            boolean encontrado = false;
-            List<Equipo> equipos = loadTeams();
+    public static void readPlayers() {
+        List<Equipo> equipos = loadTeams();
 
-            while ((playerReader= buffer.readLine())!=null)
-            {
-                if (playerReader.isBlank()){
+        boolean encontrado = false;
+
+        try (BufferedReader buffer = new BufferedReader(
+                new FileReader("players.csv"))) {
+
+            String playerReader;
+
+            while ((playerReader = buffer.readLine()) != null) {
+
+                if (playerReader.isBlank()) {
                     continue;
                 }
+
                 String[] d = playerReader.split(",", -1);
 
-                if (d.length < 5){
+                if (d.length < 5) {
                     continue;
                 }
-                String equipo = findPlayerTeam(equipos, d[1]);
-                mostrarJugador(d, equipo);
+
+                String posicion = d.length > 5 ? d[5] : "SIN_POSICION";
+                String nombreEquipo = "SIN_EQUIPO";
+
+                // Buscar el equipo al que pertenece el jugador
+                for (Equipo equipo : equipos) {
+
+                    for (Jugador jugador : equipo.getPlantilla()) {
+
+                        if (jugador.name.equalsIgnoreCase(d[1].trim())) {
+                            nombreEquipo = equipo.getTeamName();
+                            break;
+                        }
+                    }
+
+                    if (!nombreEquipo.equals("SIN_EQUIPO")) {
+                        break;
+                    }
+                }
+
+                System.out.println("ID: " + d[0] + " | Nombre: " + d[1] + " | Dorsal: " + d[2] + " | Edad: " + d[3] + " | Vivo: " + d[4] + " | Posición: " + posicion + " | Equipo: " + nombreEquipo);
+
                 encontrado = true;
             }
 
-            if (!encontrado){
+            if (encontrado) {
                 System.out.println("All players have been read");
+            } else {
+                System.out.println("No players found");
             }
-            else {
-                System.out.println("All players have not been read");
-            }
+
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error al leer jugadores: " + e.getMessage());
         }
     }
     public static void readOnePlayer(String name)
@@ -232,28 +260,77 @@ public class Operation {
         return null;
     }
 
+    private static Tecnico findTecnicoByName(String name) {
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
+            String line;
+
+            while ((line = buffer.readLine()) != null){
+                if (line.isBlank()){
+                    continue;
+                }
+                String[] d = line.split(",", -1);
+
+                if (d.length < 5){
+                    continue;
+                }
+
+                if (d[1].trim().equalsIgnoreCase(name.trim())){
+                    Tecnico tecnico = new Tecnico(d[1], LocalDate.parse(d[2]), d[3]);
+
+                    tecnico.setId(d[0]);
+                    tecnico.is_alive = Boolean.parseBoolean(d[4]);
+                    return tecnico;
+                }
+            }
+        }
+        catch (IOException | DateTimeException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
     public static List<Equipo> loadTeams() {
         List<Equipo> equipos = new ArrayList<>();
         try (BufferedReader buffer = new BufferedReader(new FileReader("teams.csv"))) {
             String teamReader;
 
             while ((teamReader = buffer.readLine()) != null){
-                String[] d = teamReader.split(",", -1);
-                Equipo equipo = new Equipo(d[0]);
 
-                if (d.length > 1 && !d[1].isBlank()){
-                    for (String name : d[1].split(";")) {
-                        Jugador jugador = findPlayerByName(name);
-                        if (jugador != null) {
+                if (teamReader.isBlank()){
+                    continue;
+                }
+                String[] d = teamReader.split(",", -1);
+
+                if (d.length < 2){
+                    continue;
+                }
+                String id = d[0].trim();
+                String name = d[1].trim();
+
+                Equipo equipo = new Equipo(id, name);
+
+                if (d.length > 2 && !d[2].isBlank()){
+
+                    for (String player_name: d[2].split(";")){
+                        Jugador jugador = findPlayerByName(player_name.trim());
+
+                        if (jugador != null){
                             equipo.agregarJugador(jugador);
                         }
+                    }
+                }
+                if (d.length > 3 && !d[3].isBlank()){
+                    Tecnico tecnico = findTecnicoByName(d[3].trim());
+
+                    if (tecnico != null){
+                        equipo.setTecnico(tecnico);
                     }
                 }
                 equipos.add(equipo);
             }
         }
         catch (IOException e) {
-
+            System.out.println(e.getMessage());
         }
         return equipos;
     }
@@ -261,11 +338,13 @@ public class Operation {
     private static void saveTeams(List<Equipo> equipos) {
         try (FileWriter writer = new FileWriter("teams.csv", false)) {
             for (Equipo equipo : equipos) {
-                List<String> names = new ArrayList<>();
+                List<String> players_name = new ArrayList<>();
                 for (Jugador jugador : equipo.getPlantilla()){
-                    names.add(jugador.name);
+                    players_name.add(jugador.name);
                 }
-                writer.write(equipo.getTeamName() + "," + String.join(";", names) + "\n");
+                String tecnico_name = equipo.getTecnico() == null ? "" : equipo.getTecnico().name;
+
+                writer.write(equipo.getId() + "," + equipo.getTeamName() + "," + String.join(";", players_name) + "," + tecnico_name + "\n");
             }
         }
         catch (IOException e) {
@@ -275,28 +354,116 @@ public class Operation {
 
     private static Equipo findTeam(List<Equipo> equipos, String teamName) {
         for (Equipo equipo : equipos){
-            if (equipo.getTeamName().equalsIgnoreCase(teamName)){
+            if (equipo.getTeamName().equalsIgnoreCase(teamName.trim()) || equipo.getId().equalsIgnoreCase(teamName.trim())){
                 return equipo;
             }
         }
         return null;
     }
 
+    private static boolean UpdateTecnicoTeam(String tecnicoName, String newClub) {
+        List<String> lines = new ArrayList<>();
+        boolean encontrado = false;
+
+        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
+            String linea;
+
+            while ((linea = buffer.readLine()) != null) {
+
+                if (linea.isBlank()) {
+                    continue;
+                }
+
+                String[] d = linea.split(",", -1);
+
+                if (d.length < 4) {
+                    lines.add(linea);
+                    continue;
+                }
+
+                if (d[1].trim().equalsIgnoreCase(tecnicoName.trim())) {
+
+                    if (d.length < 5) {
+                        d = Arrays.copyOf(d, 5);
+                        d[4] = "true";
+                    }
+
+                    d[3] = newClub;
+                    linea = String.join(",", d);
+                    encontrado = true;
+                }
+
+                lines.add(linea);
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error al leer coaches.csv: " + e.getMessage());
+            return false;
+        }
+
+        if (!encontrado) {
+            System.out.println("No se encontró el técnico en coaches.csv");
+            return false;
+        }
+
+        try (FileWriter writer = new FileWriter("coaches.csv", false)) {
+
+            for (String linea : lines) {
+                writer.write(linea + "\n");
+            }
+
+            return true;
+
+        } catch (IOException e) {
+            System.out.println("Error al actualizar club: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static String generarIdEquipo() {
+        Random random = new Random();
+        Set<String> ids = new HashSet<>();
+
+        try (BufferedReader buffer = new BufferedReader(new FileReader("teams.csv"))){
+            String line;
+
+            while ((line = buffer.readLine()) != null){
+                if (line.isBlank()){
+                    continue;
+                }
+                String[] d = line.split(",", -1);
+
+                if (d.length > 0 && !d[0].isBlank() && !d[0].equalsIgnoreCase("null")){
+                    ids.add(d[0]);
+                }
+            }
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        String Id;
+
+        do {
+            Id = String.valueOf(100000 + random.nextInt(900000));
+        }
+        while (ids.contains(Id));
+        return Id;
+    }
+
     public static void createTeam(String teamName) {
-        if (teamName.isEmpty() || teamName.contains(",") || teamName.contains(";")){
-            System.out.println("Error: Nombre no valido");
-            return;
-        }
-
         List<Equipo> equipos = loadTeams();
+
         if (findTeam(equipos,teamName) != null) {
-            System.out.println("Error: Jugador existente");
+            System.out.println("El team existe en el sistema");
             return;
         }
-
-        equipos.add(new Equipo(teamName));
+        String id = generarIdEquipo();
+        Equipo equipo = new Equipo(id, teamName);
+        equipos.add(equipo);
         saveTeams(equipos);
-        System.out.println("Team Created");
+
+        System.out.println("El team se ha agregado correctamente");
+        System.out.println("ID del equipo: " + equipo.getId());
     }
 
     public static void showTeams() {
@@ -331,31 +498,35 @@ public class Operation {
 
     public static void addPlayerToTeam(String teamName, String playerName) {
         List<Equipo> equipos = loadTeams();
-        Equipo equipo = findTeam(equipos,teamName);
-        if (equipo == null){
-            System.out.println("No se encontro el equipo");
+
+        Equipo equipo = findTeam(equipos, teamName);
+
+        if (equipo == null) {
+            System.out.println("No se encontró el equipo");
             return;
         }
 
         Jugador jugador = findPlayerByName(playerName);
-        if (jugador == null){
+
+        if (jugador == null) {
             System.out.println("No existe un jugador con ese nombre");
             return;
         }
 
-        if (equipo.buscarJugador(jugador.name) != null){
-            System.out.println("Ese jugador ya esta en la plantilla");
+        if (equipo.buscarJugador(jugador.name) != null) {
+            System.out.println("Ese jugador ya está en la plantilla");
             return;
         }
 
-        if (!equipo.agregarJugador(jugador)){
-            System.out.println("El dorsal " + jugador.dorsal + " ya lo usa otro jugador del equipo");
+        if (!equipo.agregarJugador(jugador)) {
+            System.out.println("El dorsal " + jugador.dorsal
+                    + " ya lo usa otro jugador del equipo");
             return;
         }
 
         saveTeams(equipos);
-        System.out.println("Player added to team");
 
+        System.out.println("Jugador agregado correctamente al equipo");
     }
 
     public static void removePlayerFromTeam(String teamName, String playerName) {
@@ -377,68 +548,78 @@ public class Operation {
 
     public static void AssignTecnicoToTeam(String teamName, String tecnicoName) {
         List<Equipo> equipos = loadTeams();
-        Equipo equipo = findTeam(equipos,teamName);
-        if (equipo == null){
-            System.out.println("No existe un tecnico con ese nombre");
+
+        Equipo equipo = findTeam(equipos, teamName);
+
+        if (equipo == null) {
+            System.out.println("No se encontró el equipo");
             return;
         }
 
-        if (equipo.getTecnico() != null){
-            System.out.println("El equipo ya tiene un tecnico asignado");
+        if (equipo.getTecnico() != null) {
+            System.out.println("El equipo ya tiene un técnico asignado");
             return;
         }
 
-        Tecnico tecnico = null;
+        Tecnico tecnico = findTecnicoByName(tecnicoName);
 
-        try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){
-            String tecnicoReader;
-            while ((tecnicoReader = buffer.readLine()) != null) {
-                if (tecnicoReader.isBlank()){
-                    continue;
-                }
+        if (tecnico == null) {
+            System.out.println("No existe un técnico con ese nombre");
+            return;
+        }
 
-                String[] d = tecnicoReader.split(",", -1);
-                if (d.length < 4){
-                    continue;
-                }
-                if (d[1].equalsIgnoreCase(tecnicoName.trim())){
-                    tecnico = new Tecnico(d[1], LocalDate.parse(d[2]),d[3]);
-                    tecnico.setId(d[0]);
-                    break;
-                }
+        for (Equipo otro : equipos) {
+
+            if (otro.getTecnico() != null
+                    && otro.getTecnico().name.equalsIgnoreCase(tecnicoName.trim())) {
+
+                System.out.println("El técnico ya pertenece a otro equipo");
+                return;
             }
         }
-        catch (IOException |DateTimeException e){
-            System.out.println("Error al cargar tecnico" + e.getMessage());
+
+        // Actualizar club en coaches.csv
+        if (!UpdateTecnicoTeam(tecnicoName, equipo.getTeamName())) {
             return;
         }
-        if (tecnico == null){
-            System.out.println("No existe un tecnico con ese nombre");
-            return;
-        }
+
+        // Asignar técnico al equipo
         equipo.setTecnico(tecnico);
+
+        // Guardar equipo y técnico en teams.csv
         saveTeams(equipos);
-        System.out.println("Team Assigned to tecnico");
+
+        System.out.println("Técnico asignado correctamente al equipo");
     }
 
     public static void removeTecnicoFromTeam(String teamName, String tecnicoName) {
         List<Equipo> equipos = loadTeams();
-        Equipo equipo = findTeam(equipos,teamName);
-        if (equipo == null){
-            System.out.println("No existe un tecnico con ese nombre");
+
+        Equipo equipo = findTeam(equipos, teamName);
+
+        if (equipo == null) {
+            System.out.println("No se encontró el equipo");
             return;
         }
-        if (equipo.getTecnico() == null){
+
+        if (equipo.getTecnico() == null) {
             System.out.println("El equipo no tiene un técnico asignado");
             return;
         }
 
-        if (equipo.getTecnico().name.equalsIgnoreCase(tecnicoName.trim())){
+        if (!equipo.getTecnico().name.equalsIgnoreCase(tecnicoName.trim())) {
             System.out.println("El técnico no está asignado a este equipo");
             return;
         }
+
+        if (!UpdateTecnicoTeam(tecnicoName, "SIN_CLUB")) {
+            return;
+        }
+
         equipo.setTecnico(null);
+
         saveTeams(equipos);
+
         System.out.println("Técnico retirado correctamente del equipo");
     }
 
