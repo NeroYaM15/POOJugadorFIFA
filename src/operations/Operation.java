@@ -373,6 +373,18 @@ public class Operation {
         }
     }
 
+    public static void AssignTecnicoToTeam(String teamName, String tecnicoName) {
+        List<Equipo> equipos = loadTeams();
+        Equipo equipo = findTeam(equipos,teamName);
+        if (equipo == null){
+            System.out.println("No existe un tecnico con ese nombre");
+            return;
+        }
+
+        Tecnico tecnico = readOneTecnico(tecnicoName);
+        if (equipo.buscarJugador(tecnicoName) == null){}
+    }
+
     private static String generarIdTecnico(){
         Set<String> usados = new HashSet<>();
         try (BufferedReader buffer = new BufferedReader(new FileReader("coaches.csv"))){

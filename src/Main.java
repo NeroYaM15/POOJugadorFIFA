@@ -4,6 +4,7 @@ import models.Posicion;
 import models.Tecnico;
 import operations.Operation;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.Scanner;
 
@@ -168,6 +169,8 @@ public class Main {
             System.out.println("3. Ver plantilla de un equipo");
             System.out.println("4. Agregar jugador a la plantilla");
             System.out.println("5. Eliminar jugador de la plantilla");
+            System.out.println("6. Asignat Tecnico");
+            System.out.println("7. Destituir Tecnico");
             System.out.println("0. Nos vidrios");
             System.out.println("*********** CRUD FIFAS *********** ");
 
@@ -192,6 +195,14 @@ public class Main {
 
                 case 5:
                     removePlayerFromTeam();
+                    break;
+
+                case 6:
+                    AssignTecnicoToTeam();
+                    break;
+
+                case 7:
+                    removeTecnicoFromTeam();
                     break;
 
                 case 0:
@@ -338,6 +349,24 @@ public class Main {
         Operation.removePlayerFromTeam(team_name, player_name);
     }
 
+    public static void AssignTecnicoToTeam(){
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del equipo");
+        String team_name = leer.nextLine();
+        System.out.println("Ingrese el nombre del tecnico que desea asignar");
+        String tecnico_name = leer.nextLine();
+        Operation.AssignTecnicoToTeam(team_name, tecnico_name);
+    }
+
+    public static void removeTecnicoFromTeam(){
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del equipo");
+        String team_name = leer.nextLine();
+        System.out.println("Ingrese el nombre del técnico que desea quitar");
+        String tecnico_name = leer.nextLine();
+        Operation.removeTecnicoFromTeam(team_name, tecnico_name);
+    }
+
     public static void newTecnico(){
         System.out.println("Ingrese el nombre del tecnico");
         String name = leer.nextLine();
@@ -349,6 +378,21 @@ public class Main {
         int day = leer.nextInt();
         leer.nextLine();
 
+        LocalDate nacimiento;
+        try {
+            nacimiento = LocalDate.of(year, month, day);
+        }
+        catch (DateTimeException e) {
+            System.out.println("Fecha no valido");
+            return;
+        }
+        if (nacimiento.isAfter(LocalDate.now())) {
+            System.out.println("La fecha de nacimiento no puede ser futura");
+        }
+        Tecnico tecnico = new Tecnico();
+        tecnico.name = name.trim();
+        tecnico.setNacimiento(nacimiento);
+        saveTecnico(tecnico);
     }
 
     public static void findTecnico() {
